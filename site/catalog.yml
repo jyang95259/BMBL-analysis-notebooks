@@ -229,7 +229,7 @@ workflows:
     order: 50
 
   - id: rnaseq-pilot
-    label: "RNA-seq workflow pilot"
+    label: "RNA-seq workflow"
     category: bulk
     kind: page
     repo_path: "_Archived/RNAseq_workflow"
@@ -237,6 +237,7 @@ workflows:
     order: 10
     featured: true
     navbar: true
+    navbar_text: "Featured workflow"
   - id: bulk-rnaseq-nfcore
     label: "RNA-seq nf-core workflow"
     category: bulk

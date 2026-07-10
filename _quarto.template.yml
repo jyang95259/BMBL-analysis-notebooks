@@ -13,6 +13,8 @@ website:
   title: "BMBL Analysis Notebooks"
   site-url: "https://osu-bmbl.github.io/BMBL-analysis-notebooks/"
   repo-url: "https://github.com/OSU-BMBL/BMBL-analysis-notebooks"
+  page-footer:
+    center: "[Repository](https://github.com/OSU-BMBL/BMBL-analysis-notebooks) · [How to Add a Workflow](/CONTRIBUTING_to_site.html) · [Live site home](/index.html)"
   navbar:
     logo: "https://cpb-us-w2.wpmucdn.com/u.osu.edu/dist/0/72768/files/2020/07/bmbl_logo1-300x124.png"
     right:

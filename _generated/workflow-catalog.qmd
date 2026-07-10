@@ -1,5 +1,5 @@
 <div class="catalog-groups">
-<section class="catalog-group catalog-group-scrna">
+<section id="category-scrna" class="catalog-group catalog-group-scrna">
 <h3>Single-cell RNA-seq</h3>
 <p class="catalog-count"><span>14</span> workflows</p>
 <div class="catalog-links">
@@ -22,7 +22,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-scatac">
+<section id="category-scatac" class="catalog-group catalog-group-scatac">
 <h3>Single-cell ATAC-seq</h3>
 <p class="catalog-count"><span>6</span> workflows</p>
 <div class="catalog-links">
@@ -37,7 +37,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-multiome">
+<section id="category-multiome" class="catalog-group catalog-group-multiome">
 <h3>Single-cell Multi-omics</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -47,7 +47,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-tcr">
+<section id="category-tcr" class="catalog-group catalog-group-tcr">
 <h3>Single-cell TCR-seq</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -57,7 +57,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-spatial">
+<section id="category-spatial" class="catalog-group catalog-group-spatial">
 <h3>Spatial Transcriptomics</h3>
 <p class="catalog-count"><span>5</span> workflows</p>
 <div class="catalog-links">
@@ -71,12 +71,12 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-bulk">
+<section id="category-bulk" class="catalog-group catalog-group-bulk">
 <h3>Bulk RNA-seq / ATAC-seq / ChIP-seq</h3>
 <p class="catalog-count"><span>7</span> workflows</p>
 <div class="catalog-links">
 <ul>
-<li><a href="rnaseq-workflow.qmd">RNA-seq workflow pilot</a></li>
+<li><a href="rnaseq-workflow.qmd">RNA-seq workflow</a></li>
 <li><a href="site/workflows/bulk-rnaseq-nfcore.qmd">RNA-seq nf-core workflow</a></li>
 <li><a href="site/workflows/bulk-atac-nfcore.qmd">ATAC-seq nf-core workflow</a></li>
 <li><a href="site/workflows/bulk-atac-general.qmd">Bulk ATAC workflow</a></li>
@@ -87,7 +87,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-bsseq">
+<section id="category-bsseq" class="catalog-group catalog-group-bsseq">
 <h3>Bisulfite sequencing</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -97,7 +97,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-wgs">
+<section id="category-wgs" class="catalog-group catalog-group-wgs">
 <h3>Whole Genome Sequencing</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -107,7 +107,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-grn">
+<section id="category-grn" class="catalog-group catalog-group-grn">
 <h3>Gene Regulatory Networks</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -117,7 +117,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-enrichment">
+<section id="category-enrichment" class="catalog-group catalog-group-enrichment">
 <h3>Enrichment / downstream analysis</h3>
 <p class="catalog-count"><span>1</span> workflow</p>
 <div class="catalog-links">
@@ -127,7 +127,7 @@
 </div>
 </section>
 
-<section class="catalog-group catalog-group-data">
+<section id="category-data" class="catalog-group catalog-group-data">
 <h3>Data utilities</h3>
 <p class="catalog-count"><span>4</span> workflows</p>
 <div class="catalog-links">

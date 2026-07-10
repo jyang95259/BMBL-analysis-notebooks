@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap");
 
 :root {
   --paper: #fafbfa;
@@ -30,6 +30,9 @@
   --radius-md: 0.65rem;
   --radius-sm: 0.45rem;
   --content-width: 84rem;
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-code: ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
 body.quarto-dark,
@@ -75,7 +78,7 @@ html {
 body {
   background: var(--paper);
   color: var(--graphite);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   line-height: 1.62;
   text-rendering: optimizeLegibility;
 }
@@ -109,10 +112,8 @@ code,
 pre,
 .sourceCode,
 .code-with-copy,
-.code-copy-button,
-.catalog-count,
-.home-kicker {
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+.code-copy-button {
+  font-family: var(--font-code);
 }
 
 .navbar {
@@ -140,22 +141,34 @@ pre,
 .sidebar .sidebar-item-text,
 .quarto-page-breadcrumbs,
 .sidebar-title {
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
+}
+
+.navbar,
+.navbar a,
+.navbar button,
+.sidebar,
+.sidebar a,
+.sidebar button,
+.sidebar span {
+  font-family: var(--font-body);
+  font-style: normal;
 }
 
 .navbar-title {
-  font-size: 0.96rem;
-  font-weight: 600;
-  letter-spacing: 0.015em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .navbar .nav-link,
 .navbar .menu-text,
 .toc-actions,
 #TOC a {
-  color: var(--graphite-soft);
-  font-size: 0.92rem;
+  color: var(--graphite);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .navbar .nav-link,
@@ -225,23 +238,23 @@ pre,
 
 .sidebar-item.sidebar-item-section > .sidebar-item-container > .sidebar-item-text,
 .sidebar-item.sidebar-item-section > .sidebar-item-container > .sidebar-item-toggle {
-  color: var(--muted);
+  color: var(--graphite-soft);
 }
 
 .sidebar-item.sidebar-item-section > .sidebar-item-container > .sidebar-item-text {
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 0.94rem;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .sidebar .sidebar-link {
   display: block;
   padding: 0.38rem 0.58rem;
   border-radius: var(--radius-sm);
-  color: var(--graphite-soft);
-  font-size: 0.92rem;
-  line-height: 1.32;
+  color: var(--graphite);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
   overflow-wrap: anywhere;
   transition: color 0.16s ease, background-color 0.16s ease;
 }
@@ -255,7 +268,7 @@ pre,
 .sidebar .sidebar-link.active {
   background: var(--surface-active);
   color: var(--scarlet);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .quarto-page-breadcrumbs .breadcrumb {
@@ -267,8 +280,7 @@ pre,
 .quarto-page-breadcrumbs .breadcrumb-item a {
   color: var(--muted);
   font-size: 0.77rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 main.content {
@@ -280,7 +292,7 @@ main.content {
 h1,
 .quarto-title .title,
 .home-band h1 {
-  font-family: "Source Serif 4", Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.06;
@@ -294,7 +306,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -361,10 +373,10 @@ body:has(.home-band) #title-block-header {
   display: inline-block;
   margin-bottom: 0.55rem;
   color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .home-band h1 {
@@ -392,9 +404,8 @@ main#quarto-document-content section.level3 > p,
   margin-top: 0;
   margin-bottom: 0.55rem;
   color: var(--graphite-soft);
-  font-size: 0.86rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
 .home-band-side ul {
@@ -408,10 +419,53 @@ main#quarto-document-content section.level3 > p,
 
 .home-band-side p:first-of-type a {
   display: inline-block;
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.home-jump {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0.8rem 0 0.95rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.home-jump-label {
+  margin: 0;
+  color: var(--graphite-soft);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.home-jump-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-jump-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.36rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--graphite);
+  background: var(--panel);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.home-jump-links a:hover,
+.home-jump-links a:focus {
+  color: var(--scarlet);
+  border-color: var(--line-strong);
+  background: var(--panel-alt);
 }
 
 .catalog-groups {
@@ -439,10 +493,10 @@ main#quarto-document-content section.level3 > p,
 .catalog-count {
   margin: 0.18rem 0 0.55rem;
   color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .catalog-count span {
@@ -534,11 +588,10 @@ body:has(#what-it-does):has(#prerequisites)
   h2 {
   margin: 0 0 0.65rem;
   color: var(--scarlet);
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 body:has(#what-it-does):has(#prerequisites)
@@ -678,9 +731,9 @@ figcaption,
 
 .callout.callout-note h2,
 .callout.callout-note .callout-title-container {
-  font-size: 0.86rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
 }
 
 .table,
@@ -794,8 +847,7 @@ table {
   color: currentColor;
   font-size: 0.76rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .quarto-navbar-tools
@@ -1034,7 +1086,7 @@ body.aa-Detached {
   flex: 1 1 auto;
   color: var(--graphite);
   background: transparent;
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
 }
 
@@ -1097,10 +1149,10 @@ body.aa-Detached {
   border-bottom: 1px solid var(--line);
   background: var(--panel-alt);
   color: var(--muted);
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .aa-Item {
@@ -1250,6 +1302,20 @@ a[href^="https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"]::aft
   font-size: 0.9em;
 }
 
+.nav-footer {
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--graphite-soft);
+}
+
+.nav-footer a {
+  color: var(--graphite);
+}
+
+.nav-footer .nav-footer-center {
+  font-size: 0.92rem;
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -1317,6 +1383,10 @@ a[href^="https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"]::aft
 
   .catalog-links ul {
     grid-template-columns: 1fr;
+  }
+
+  .home-jump-links {
+    gap: 0.4rem;
   }
 
   .aa-DetachedOverlay {

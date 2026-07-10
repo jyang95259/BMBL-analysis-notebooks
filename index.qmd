@@ -6,7 +6,7 @@ toc: false
 
 ::: {.home-band}
 ::: {.home-band-main}
-![](https://cpb-us-w2.wpmucdn.com/u.osu.edu/dist/0/72768/files/2020/07/bmbl_logo1-300x124.png){.home-logo}
+<img src="https://cpb-us-w2.wpmucdn.com/u.osu.edu/dist/0/72768/files/2020/07/bmbl_logo1-300x124.png" alt="BMBL logo" class="home-logo" />
 
 <span class="home-kicker">Internal protocol atlas</span>
 
@@ -22,7 +22,7 @@ It is not a from-scratch training course. Each page stays at the usage-and-ratio
 
 [RNA-seq Workflow](rnaseq-workflow.qmd)
 
-Use the RNA-seq pilot page as the clearest example of the current in-site workflow format: prerequisites, structured steps, committed images, and links back to the source materials.
+Use the featured RNA-seq workflow page as a clear example of the current in-site workflow format: prerequisites, structured steps, committed images, and links back to the source materials.
 
 ### Use this site for
 
@@ -34,6 +34,8 @@ Use the RNA-seq pilot page as the clearest example of the current in-site workfl
 :::
 
 ## Workflow catalog
+
+{{< include /_generated/category-jump-links.qmd >}}
 
 Browse by assay family. The catalog is intentionally dense and optimized for scanning.
 

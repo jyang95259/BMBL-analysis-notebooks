@@ -1,0 +1,16 @@
+<div class="home-jump" aria-label="Jump to assay family">
+<p class="home-jump-label">Jump to assay family</p>
+<ul class="home-jump-links">
+<li><a href="#category-scrna">Single-cell RNA-seq</a></li>
+<li><a href="#category-scatac">Single-cell ATAC-seq</a></li>
+<li><a href="#category-multiome">Single-cell Multi-omics</a></li>
+<li><a href="#category-tcr">Single-cell TCR-seq</a></li>
+<li><a href="#category-spatial">Spatial Transcriptomics</a></li>
+<li><a href="#category-bulk">Bulk RNA-seq / ATAC-seq / ChIP-seq</a></li>
+<li><a href="#category-bsseq">Bisulfite sequencing</a></li>
+<li><a href="#category-wgs">Whole Genome Sequencing</a></li>
+<li><a href="#category-grn">Gene Regulatory Networks</a></li>
+<li><a href="#category-enrichment">Enrichment / downstream analysis</a></li>
+<li><a href="#category-data">Data utilities</a></li>
+</ul>
+</div>

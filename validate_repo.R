@@ -35,6 +35,44 @@ check_warn <- function(msg) {
   warnings <<- warnings + 1
 }
 
+read_text_file <- function(path) {
+  paste(readLines(path, warn = FALSE), collapse = "\n")
+}
+
+extract_front_matter <- function(text) {
+  match <- regexec("(?s)^---\n(.*?)\n---(?:\n|$)", text, perl = TRUE)
+  captures <- regmatches(text, match)[[1]]
+  if (length(captures) < 2) {
+    return(NULL)
+  }
+  captures[2]
+}
+
+workflow_pages <- function() {
+  c(
+    "rnaseq-workflow.qmd",
+    sort(list.files("site/workflows", pattern = "\\.qmd$", full.names = TRUE))
+  )
+}
+
+required_site_headings <- c(
+  "## What it does",
+  "## When to use it",
+  "## Prerequisites",
+  "## Steps",
+  "## Gotchas / notes"
+)
+
+extract_markdown_image_paths <- function(text) {
+  matches <- gregexpr("!\\[[^]]*\\]\\(([^)]+)\\)", text, perl = TRUE)
+  raw <- regmatches(text, matches)[[1]]
+  if (length(raw) == 0) {
+    return(character())
+  }
+  paths <- sub("^!\\[[^]]*\\]\\(([^)]+)\\)$", "\\1", raw, perl = TRUE)
+  trimws(sub("\\s+\"[^\"]*\"$", "", paths, perl = TRUE))
+}
+
 # 1. Check required root files
 cat("1. Checking required root files...\n")
 required_files <- c(
@@ -58,7 +96,8 @@ cat("\n")
 cat("2. Checking workflow directories...\n")
 all_dirs <- list.dirs(".", recursive = FALSE)
 exclude_dirs <- c(".git", ".github", "_common", "_figure_code", 
-                  "_Archived", "_Introduction_OSC", "dependencies")
+                  "_Archived", "_Introduction_OSC", "dependencies",
+                  "_generated", "docs", "scripts", "site")
 
 workflow_dirs <- all_dirs[!basename(all_dirs) %in% exclude_dirs & 
                            !grepl("^\\.", basename(all_dirs))]
@@ -83,6 +122,22 @@ for (dir in workflow_dirs) {
       check_warn(paste("  0_install_packages.R missing (R code detected)"))
     }
   }
+}
+cat("\n")
+
+# 3a. Check generated website files and site catalog alignment
+cat("3a. Checking generated website files...\n")
+site_check <- system2(
+  "python3",
+  c("scripts/build_site_catalog.py", "--check"),
+  stdout = TRUE,
+  stderr = TRUE
+)
+
+if (is.null(attr(site_check, "status"))) {
+  check_pass("Generated site files and catalog are in sync")
+} else {
+  check_fail(paste(site_check, collapse = "\n"))
 }
 cat("\n")
 
@@ -124,8 +179,86 @@ for (file in yaml_files) {
 }
 cat("\n")
 
-# 5. Check for AI context files (Phase 5)
-cat("5. Checking AI context files (Phase 5)...\n")
+# 5. Check site workflow pages
+cat("5. Checking site workflow pages...\n")
+for (page in workflow_pages()) {
+  text <- read_text_file(page)
+  front_matter <- extract_front_matter(text)
+
+  if (is.null(front_matter)) {
+    check_fail(paste(page, "is missing YAML front matter"))
+    next
+  }
+
+  if (grepl("workflow:\\s*", front_matter, perl = TRUE)) {
+    check_pass(paste(page, "has workflow metadata"))
+  } else {
+    check_fail(paste(page, "is missing workflow metadata block"))
+  }
+
+  if (grepl("workflow:\\s*[\\s\\S]*?id:\\s*\"?[A-Za-z0-9-]+\"?", front_matter, perl = TRUE)) {
+    check_pass(paste(page, "has workflow.id"))
+  } else {
+    check_fail(paste(page, "is missing workflow.id"))
+  }
+
+  if (grepl("workflow:\\s*[\\s\\S]*?repo_path:\\s*\"?[^\n\"]+\"?", front_matter, perl = TRUE)) {
+    check_pass(paste(page, "has workflow.repo_path"))
+  } else {
+    check_fail(paste(page, "is missing workflow.repo_path"))
+  }
+
+  for (heading in required_site_headings) {
+    if (grepl(heading, text, fixed = TRUE)) {
+      check_pass(paste(page, "contains", heading))
+    } else {
+      check_fail(paste(page, "is missing", heading))
+    }
+  }
+
+  if (grepl("View source on GitHub", text, fixed = TRUE)) {
+    check_pass(paste(page, "contains View source link"))
+  } else {
+    check_fail(paste(page, "is missing View source on GitHub link"))
+  }
+}
+cat("\n")
+
+# 6. Check local image assets referenced by site pages
+cat("6. Checking local image assets used by site pages...\n")
+for (page in c("index.qmd", workflow_pages())) {
+  text <- read_text_file(page)
+  image_paths <- extract_markdown_image_paths(text)
+  local_paths <- image_paths[!grepl("^(https?:)?//", image_paths)]
+
+  if (length(local_paths) == 0) {
+    check_pass(paste(page, "has no local image references to validate"))
+    next
+  }
+
+  for (img in local_paths) {
+    resolved <- file.path(dirname(page), img)
+    if (file.exists(resolved)) {
+      check_pass(paste(page, "references existing image", img))
+    } else {
+      check_fail(paste(page, "references missing image", img))
+    }
+  }
+}
+cat("\n")
+
+# 7. Check root README live-site link placement
+cat("7. Checking root README live-site link...\n")
+readme_top <- readLines("README.md", warn = FALSE, n = 20)
+if (any(grepl("https://osu-bmbl.github.io/BMBL-analysis-notebooks/", readme_top, fixed = TRUE))) {
+  check_pass("README.md includes the live-site link near the top")
+} else {
+  check_fail("README.md is missing the live-site link near the top")
+}
+cat("\n")
+
+# 8. Check for AI context files (Phase 5)
+cat("8. Checking AI context files (Phase 5)...\n")
 major_workflows <- c(
   "scRNAseq_general_workflow",
   "scRNAseq_trajectory_Slingshot",
