@@ -22,6 +22,7 @@ ppt/
 result*/
 .Rhistory
 .Rproj.user
+*.Rproj
 tmp/
 *.loom
 *.h5
@@ -29,6 +30,9 @@ sample_obj/
 deg/
 .DS_Store
 **/.DS_Store
+
+## Local agent/tooling state
+.omc/
 
 ## Whitelist
 !figure_code/example_combined.qsave
