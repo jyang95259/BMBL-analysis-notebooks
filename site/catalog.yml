@@ -235,7 +235,6 @@ workflows:
     repo_path: "_Archived/RNAseq_workflow"
     page: "rnaseq-workflow.qmd"
     order: 10
-    featured: true
     navbar: true
     navbar_text: "Featured workflow"
   - id: bulk-rnaseq-nfcore

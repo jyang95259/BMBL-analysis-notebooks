@@ -36,6 +36,9 @@ check_warn <- function(msg) {
 }
 
 read_text_file <- function(path) {
+  if (!file.exists(path)) {
+    return("")
+  }
   paste(readLines(path, warn = FALSE), collapse = "\n")
 }
 
@@ -127,17 +130,27 @@ cat("\n")
 
 # 3a. Check generated website files and site catalog alignment
 cat("3a. Checking generated website files...\n")
-site_check <- system2(
-  "python3",
-  c("scripts/build_site_catalog.py", "--check"),
-  stdout = TRUE,
-  stderr = TRUE
-)
-
-if (is.null(attr(site_check, "status"))) {
-  check_pass("Generated site files and catalog are in sync")
+if (!nzchar(Sys.which("python3"))) {
+  check_warn("python3 not found - skipping generated-site catalog sync check")
 } else {
-  check_fail(paste(site_check, collapse = "\n"))
+  site_check <- tryCatch(
+    system2(
+      "python3",
+      c("scripts/build_site_catalog.py", "--check"),
+      stdout = TRUE,
+      stderr = TRUE
+    ),
+    error = function(e) structure(
+      paste("Could not run build_site_catalog.py:", conditionMessage(e)),
+      status = 1L
+    )
+  )
+
+  if (is.null(attr(site_check, "status"))) {
+    check_pass("Generated site files and catalog are in sync")
+  } else {
+    check_fail(paste(site_check, collapse = "\n"))
+  }
 }
 cat("\n")
 
@@ -182,6 +195,10 @@ cat("\n")
 # 5. Check site workflow pages
 cat("5. Checking site workflow pages...\n")
 for (page in workflow_pages()) {
+  if (!file.exists(page)) {
+    check_fail(paste(page, "is referenced but does not exist"))
+    next
+  }
   text <- read_text_file(page)
   front_matter <- extract_front_matter(text)
 
@@ -190,26 +207,31 @@ for (page in workflow_pages()) {
     next
   }
 
-  if (grepl("workflow:\\s*", front_matter, perl = TRUE)) {
+  # Anchor to a top-level `workflow:` key with indented children, so a stray
+  # top-level `id:`/`repo_path:` (or the word "workflow:" in prose) cannot pass.
+  if (grepl("(?m)^workflow:[ \\t]*$", front_matter, perl = TRUE)) {
     check_pass(paste(page, "has workflow metadata"))
   } else {
     check_fail(paste(page, "is missing workflow metadata block"))
   }
 
-  if (grepl("workflow:\\s*[\\s\\S]*?id:\\s*\"?[A-Za-z0-9-]+\"?", front_matter, perl = TRUE)) {
+  if (grepl("(?m)^[ \\t]+id:\\s*\"?[A-Za-z0-9_-]+\"?", front_matter, perl = TRUE)) {
     check_pass(paste(page, "has workflow.id"))
   } else {
     check_fail(paste(page, "is missing workflow.id"))
   }
 
-  if (grepl("workflow:\\s*[\\s\\S]*?repo_path:\\s*\"?[^\n\"]+\"?", front_matter, perl = TRUE)) {
+  if (grepl("(?m)^[ \\t]+repo_path:\\s*\"?[^\n\"]+\"?", front_matter, perl = TRUE)) {
     check_pass(paste(page, "has workflow.repo_path"))
   } else {
     check_fail(paste(page, "is missing workflow.repo_path"))
   }
 
   for (heading in required_site_headings) {
-    if (grepl(heading, text, fixed = TRUE)) {
+    # Anchor to a whole line so a deeper level (`### Prerequisites`) or a
+    # reworded heading (`## What it does differently`) does not falsely pass.
+    heading_pattern <- paste0("(?m)^", heading, "[ \\t]*$")
+    if (grepl(heading_pattern, text, perl = TRUE)) {
       check_pass(paste(page, "contains", heading))
     } else {
       check_fail(paste(page, "is missing", heading))

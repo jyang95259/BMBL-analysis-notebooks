@@ -59,14 +59,22 @@ def dump_scalar(value):
     return json.dumps(str(value))
 
 
+def empty_flow(value):
+    # An empty mapping/sequence must be emitted inline; a bare "key:" parses as null.
+    return "{}" if isinstance(value, dict) else "[]"
+
+
 def dump_yaml(value, indent=0):
     space = " " * indent
     lines = []
     if isinstance(value, dict):
         for key, item in value.items():
             if isinstance(item, (dict, list)):
-                lines.append(f"{space}{key}:")
-                lines.append(dump_yaml(item, indent + 2))
+                if not item:
+                    lines.append(f"{space}{key}: {empty_flow(item)}")
+                else:
+                    lines.append(f"{space}{key}:")
+                    lines.append(dump_yaml(item, indent + 2))
             else:
                 lines.append(f"{space}{key}: {dump_scalar(item)}")
     elif isinstance(value, list):
@@ -79,20 +87,29 @@ def dump_yaml(value, indent=0):
                 first = keys[0]
                 first_value = item[first]
                 if isinstance(first_value, (dict, list)):
-                    lines.append(f"{space}- {first}:")
-                    lines.append(dump_yaml(first_value, indent + 4))
+                    if not first_value:
+                        lines.append(f"{space}- {first}: {empty_flow(first_value)}")
+                    else:
+                        lines.append(f"{space}- {first}:")
+                        lines.append(dump_yaml(first_value, indent + 4))
                 else:
                     lines.append(f"{space}- {first}: {dump_scalar(first_value)}")
                 for key in keys[1:]:
                     child = item[key]
                     if isinstance(child, (dict, list)):
-                        lines.append(f"{space}  {key}:")
-                        lines.append(dump_yaml(child, indent + 4))
+                        if not child:
+                            lines.append(f"{space}  {key}: {empty_flow(child)}")
+                        else:
+                            lines.append(f"{space}  {key}:")
+                            lines.append(dump_yaml(child, indent + 4))
                     else:
                         lines.append(f"{space}  {key}: {dump_scalar(child)}")
             elif isinstance(item, list):
-                lines.append(f"{space}-")
-                lines.append(dump_yaml(item, indent + 2))
+                if not item:
+                    lines.append(f"{space}- []")
+                else:
+                    lines.append(f"{space}-")
+                    lines.append(dump_yaml(item, indent + 2))
             else:
                 lines.append(f"{space}- {dump_scalar(item)}")
     else:
@@ -153,7 +170,6 @@ def validate_catalog(catalog):
         category_ids.add(cid)
 
     workflow_ids = set()
-    featured = []
     navbar = []
     for workflow in workflows:
         wid = workflow["id"]
@@ -196,13 +212,9 @@ def validate_catalog(catalog):
                     f"found {workflow_meta.get('repo_path')}"
                 )
 
-        if workflow.get("featured"):
-            featured.append(wid)
         if workflow.get("navbar"):
             navbar.append(wid)
 
-    if len(featured) > 1:
-        raise SystemExit(f"Only one workflow can be featured. Found: {', '.join(featured)}")
     if len(navbar) > 1:
         raise SystemExit(f"Only one workflow can appear in the navbar workflow slot. Found: {', '.join(navbar)}")
 
