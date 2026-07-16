@@ -56,10 +56,12 @@ website:
   title: "BMBL Analysis Notebooks"
   site-url: "https://osu-bmbl.github.io/BMBL-analysis-notebooks/"
   repo-url: "https://github.com/OSU-BMBL/BMBL-analysis-notebooks"
+  page-footer:
+    center: "[Repository](https://github.com/OSU-BMBL/BMBL-analysis-notebooks) \u00b7 [How to Add a Workflow](/CONTRIBUTING_to_site.html) \u00b7 [Live site home](/index.html)"
   navbar:
     logo: "https://cpb-us-w2.wpmucdn.com/u.osu.edu/dist/0/72768/files/2020/07/bmbl_logo1-300x124.png"
     right:
-      - text: "RNA-seq workflow pilot"
+      - text: "Featured workflow"
         href: "rnaseq-workflow.qmd"
       - text: "Add a Workflow"
         href: "CONTRIBUTING_to_site.md"
@@ -140,7 +142,7 @@ website:
       - section: "Bulk RNA-seq / ATAC-seq / ChIP-seq"
         contents:
           - href: "rnaseq-workflow.qmd"
-            text: "RNA-seq workflow pilot"
+            text: "RNA-seq workflow"
           - href: "site/workflows/bulk-rnaseq-nfcore.qmd"
             text: "RNA-seq nf-core workflow"
           - href: "site/workflows/bulk-atac-nfcore.qmd"
@@ -183,7 +185,9 @@ website:
         text: "How to Add a Workflow"
 format:
   html:
-    theme: "cosmo"
+    theme:
+      light: "cosmo"
+      dark: "darkly"
     css: "styles.css"
     toc: true
     code-copy: true

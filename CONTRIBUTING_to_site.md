@@ -18,6 +18,14 @@ Use this checklist when you migrate a workflow into the Quarto site.
 8. Run `python3 scripts/build_site_catalog.py`, then `quarto render`, from the repo root.
 9. Verify the page in the rendered site: links work, images load, copy-code buttons appear, and the GitHub source link points to the correct workflow folder.
 
+## Before opening a PR
+
+1. Run `python3 scripts/build_site_catalog.py` from the repo root so `_quarto.yml` and the generated catalog files stay aligned with `site/catalog.yml`.
+2. Run `Rscript validate_repo.R` and fix any site-related errors before pushing.
+3. Run `quarto render` from the repo root and confirm the build completes without executing notebooks.
+4. Verify the rendered page manually: navigation works, local images load, and the `View source on GitHub` link points to the correct folder.
+5. Confirm the site remains display-only: no notebook execution, no duplicated analysis content, and no regenerated figures.
+
 ## Fixed page template
 
 Every workflow page should stay within this structure:

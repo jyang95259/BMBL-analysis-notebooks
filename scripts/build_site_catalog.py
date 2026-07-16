@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import argparse
+import difflib
 import json
+import html
 import re
 import subprocess
 from pathlib import Path
@@ -13,6 +16,7 @@ CATALOG_PATH = REPO_ROOT / "site" / "catalog.yml"
 TEMPLATE_PATH = REPO_ROOT / "_quarto.template.yml"
 QUARTO_PATH = REPO_ROOT / "_quarto.yml"
 WORKFLOW_CATALOG_PATH = REPO_ROOT / "_generated" / "workflow-catalog.qmd"
+JUMP_LINKS_PATH = REPO_ROOT / "_generated" / "category-jump-links.qmd"
 REPO_TREE_BASE = "https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"
 STATIC_RENDER_PAGES = ["index.qmd", "CONTRIBUTING_to_site.md"]
 
@@ -114,6 +118,10 @@ def workflow_href(workflow):
     if workflow["kind"] == "page":
         return workflow["page"]
     return f"{REPO_TREE_BASE}{workflow['repo_path']}"
+
+
+def category_anchor(category):
+    return f"category-{category['id']}"
 
 
 def ordered_categories(categories):
@@ -221,7 +229,8 @@ def build_quarto(template, categories, workflows):
     navbar = dict(website["navbar"])
     navbar_right = []
     if featured_nav:
-        navbar_right.append({"text": featured_nav["label"], "href": featured_nav["page"]})
+        featured_label = featured_nav.get("navbar_text", featured_nav["label"])
+        navbar_right.append({"text": featured_label, "href": featured_nav["page"]})
     navbar_right.extend(navbar["right"])
     navbar["right"] = navbar_right
 
@@ -252,23 +261,104 @@ def build_quarto(template, categories, workflows):
 def build_workflow_catalog_qmd(categories, workflows):
     grouped = workflows_by_category(categories, workflows)
     lines = []
+    lines.append('<div class="catalog-groups">')
     for category in ordered_categories(categories):
-        lines.append(f"### {category['label']}")
-        lines.append("")
+        count = len(grouped[category["id"]])
+        label = "workflow" if count == 1 else "workflows"
+        lines.append(
+            f'<section id="{html.escape(category_anchor(category), quote=True)}" '
+            f'class="catalog-group catalog-group-{html.escape(category["id"])}">'
+        )
+        lines.append(f"<h3>{html.escape(category['label'])}</h3>")
+        lines.append(
+            f'<p class="catalog-count"><span>{count}</span> {label}</p>'
+        )
+        lines.append('<div class="catalog-links">')
+        lines.append("<ul>")
         for workflow in grouped[category["id"]]:
-            lines.append(f"- [{workflow['label']}]({workflow_href(workflow)})")
+            href = html.escape(workflow_href(workflow), quote=True)
+            workflow_label = html.escape(workflow["label"])
+            lines.append(f'<li><a href="{href}">{workflow_label}</a></li>')
+        lines.append("</ul>")
+        lines.append("</div>")
+        lines.append("</section>")
         lines.append("")
+    lines.append("</div>")
     return "\n".join(lines).rstrip() + "\n"
 
 
+def build_jump_links_qmd(categories):
+    lines = []
+    lines.append('<div class="home-jump" aria-label="Jump to assay family">')
+    lines.append('<p class="home-jump-label">Jump to assay family</p>')
+    lines.append('<ul class="home-jump-links">')
+    for category in ordered_categories(categories):
+        href = html.escape(f"#{category_anchor(category)}", quote=True)
+        label = html.escape(category["label"])
+        lines.append(f'<li><a href="{href}">{label}</a></li>')
+    lines.append("</ul>")
+    lines.append("</div>")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def expected_outputs(template, categories, workflows):
+    return {
+        QUARTO_PATH: dump_yaml(build_quarto(template, categories, workflows)) + "\n",
+        WORKFLOW_CATALOG_PATH: build_workflow_catalog_qmd(categories, workflows),
+        JUMP_LINKS_PATH: build_jump_links_qmd(categories),
+    }
+
+
+def check_outputs(expected_by_path):
+    mismatches = []
+    for path, expected in expected_by_path.items():
+        if not path.exists():
+            mismatches.append(f"Missing generated file: {path.relative_to(REPO_ROOT)}")
+            continue
+        actual = path.read_text()
+        if actual != expected:
+            rel_path = path.relative_to(REPO_ROOT)
+            diff = "".join(
+                difflib.unified_diff(
+                    actual.splitlines(keepends=True),
+                    expected.splitlines(keepends=True),
+                    fromfile=f"{rel_path} (current)",
+                    tofile=f"{rel_path} (expected)",
+                    n=2,
+                )
+            ).strip()
+            if diff:
+                mismatches.append(diff)
+            else:
+                mismatches.append(f"Generated file is out of date: {rel_path}")
+    if mismatches:
+        raise SystemExit(
+            "Generated site files are out of date. Run `python3 scripts/build_site_catalog.py`.\n\n"
+            + "\n\n".join(mismatches)
+        )
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate generated files without rewriting them.",
+    )
+    args = parser.parse_args()
+
     catalog = load_yaml(CATALOG_PATH)
     template = load_yaml(TEMPLATE_PATH)
     categories, workflows = validate_catalog(catalog)
+    expected_by_path = expected_outputs(template, categories, workflows)
 
-    QUARTO_PATH.write_text(dump_yaml(build_quarto(template, categories, workflows)) + "\n")
+    if args.check:
+        check_outputs(expected_by_path)
+        return
+
     WORKFLOW_CATALOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    WORKFLOW_CATALOG_PATH.write_text(build_workflow_catalog_qmd(categories, workflows))
+    for path, contents in expected_by_path.items():
+        path.write_text(contents)
 
 
 if __name__ == "__main__":
