@@ -30,7 +30,7 @@ jobs:
         run: python3 scripts/build_site_catalog.py
 
       - name: Verify generated artifacts are committed
-        run: git diff --exit-code -- _quarto.yml _generated/workflow-catalog.qmd
+        run: git diff --exit-code -- _quarto.yml _generated/workflow-catalog.qmd _generated/category-jump-links.qmd
 
       - name: Render site
         run: quarto render
