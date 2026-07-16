@@ -35,7 +35,6 @@ Main R Markdown pipeline:
 ## Session Info as Tested
 
 - **R version**: 4.3.2
-- **Seurat version**: 3.2.0     
 - **Giotto version**: ≥1.1.1  
 - **Bioconductor version**: 3.17  
 - **Key packages**:

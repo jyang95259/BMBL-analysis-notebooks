@@ -40,7 +40,6 @@ Main R Markdown pipeline:
 ## Session Info as Tested
 
 - **R version**: 4.3.2
-- **Seurat version**: 3.2.0     
 - **SPOTlight version**: ≥0.1.7  
 - **Seurat version**: ≥5.0.0  
 - **Key packages**:
