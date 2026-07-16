@@ -14,7 +14,9 @@ toc: false
 
 This site turns the repository into a browsable static reference for BMBL bioinformatics workflows. It is built for readers who already know the assays and analysis ecosystem and need a quicker way to orient themselves to workflow usage, code patterns, committed figures, and source materials.
 
-It is not a from-scratch training course. Each page stays at the usage-and-rationale level and points back to the committed repository source rather than re-running notebooks.
+The repository is not an introduction to sequencing analysis, so this site focuses on workflow usage, expected inputs and outputs, committed figures, and source links rather than runnable notebooks or beginner lessons.
+
+The workflow catalog below is now internalized into the site: each entry is presented as a Quarto page built from committed repository materials without re-executing the notebooks.
 :::
 
 ::: {.home-band-side}
