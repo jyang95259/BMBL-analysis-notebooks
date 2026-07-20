@@ -98,9 +98,9 @@ cat("\n")
 # 2. Check workflow directories
 cat("2. Checking workflow directories...\n")
 all_dirs <- list.dirs(".", recursive = FALSE)
-exclude_dirs <- c(".git", ".github", "_common", "_figure_code", 
+exclude_dirs <- c(".git", ".github", "_common", "_figure_code",
                   "_Archived", "_Introduction_OSC", "dependencies",
-                  "_generated", "docs", "scripts", "site")
+                  "_generated", "docs", "scripts", "site", "skills")
 
 workflow_dirs <- all_dirs[!basename(all_dirs) %in% exclude_dirs & 
                            !grepl("^\\.", basename(all_dirs))]
