@@ -1355,16 +1355,16 @@ a[href^="https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"]::aft
   body.docked.listing .page-columns {
     grid-template-columns:
       [screen-start] 1.5em
-      [screen-start-inset page-start] minmax(50px, 100px)
-      [page-start-inset] 50px
-      [body-start-outset] 50px
+      [screen-start-inset page-start] minmax(24px, 100px)
+      [page-start-inset] clamp(16px, 2vw, 50px)
+      [body-start-outset] clamp(16px, 2vw, 50px)
       [body-start] 1.5em
-      [body-content-start] minmax(500px, calc(1400px - 3em))
+      [body-content-start] minmax(500px, 1fr)
       [body-content-end] 1.5em
-      [body-end] 50px
-      [body-end-outset] minmax(50px, 100px)
-      [page-end-inset] 50px
-      [page-end] 5fr
+      [body-end] clamp(16px, 2vw, 50px)
+      [body-end-outset] minmax(24px, 100px)
+      [page-end-inset] clamp(16px, 2vw, 50px)
+      [page-end] 0px
       [screen-end-inset] 1.5em
       [screen-end];
   }
@@ -1372,13 +1372,13 @@ a[href^="https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"]::aft
   body.docked.fullcontent .page-columns {
     grid-template-columns:
       [screen-start] 1.5em
-      [screen-start-inset page-start] minmax(50px, 100px)
-      [page-start-inset] 50px
-      [body-start-outset] 50px
+      [screen-start-inset page-start] minmax(24px, 100px)
+      [page-start-inset] clamp(16px, 2vw, 50px)
+      [body-start-outset] clamp(16px, 2vw, 50px)
       [body-start] 1.5em
-      [body-content-start] minmax(500px, calc(1400px - 3em))
+      [body-content-start] minmax(500px, 1fr)
       [body-content-end] 1.5em
-      [body-end body-end-outset page-end-inset page-end] 5fr
+      [body-end body-end-outset page-end-inset page-end] minmax(24px, 100px)
       [screen-end-inset] 1.5em
       [screen-end];
   }
