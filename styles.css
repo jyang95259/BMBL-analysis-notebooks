@@ -106,6 +106,9 @@ kbd {
   background: var(--panel-alt);
   color: var(--graphite);
   padding: 0.08rem 0.32rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 code,
@@ -284,9 +287,11 @@ pre,
 }
 
 main.content {
-  max-width: var(--content-width);
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 1rem 1.6rem 3.2rem;
+  min-width: 0;
 }
 
 h1,
@@ -689,12 +694,29 @@ pre,
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--code-bg);
+  max-width: 100%;
 }
 
 pre code,
 .sourceCode code {
   background: transparent;
   color: inherit;
+}
+
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.sourceCode {
+  overflow-x: auto;
+}
+
+.sourceCode pre,
+.sourceCode code,
+.sourceCode span {
+  max-width: 100%;
 }
 
 div.code-copy-outer-scaffold {
@@ -1324,6 +1346,41 @@ a[href^="https://github.com/OSU-BMBL/BMBL-analysis-notebooks/tree/master/"]::aft
 @media (max-width: 1279px) {
   .catalog-groups {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 992px) {
+  body.docked .page-columns,
+  body.docked.fullcontent .page-columns,
+  body.docked.listing .page-columns {
+    grid-template-columns:
+      [screen-start] 1.5em
+      [screen-start-inset page-start] minmax(50px, 100px)
+      [page-start-inset] 50px
+      [body-start-outset] 50px
+      [body-start] 1.5em
+      [body-content-start] minmax(500px, calc(1400px - 3em))
+      [body-content-end] 1.5em
+      [body-end] 50px
+      [body-end-outset] minmax(50px, 100px)
+      [page-end-inset] 50px
+      [page-end] 5fr
+      [screen-end-inset] 1.5em
+      [screen-end];
+  }
+
+  body.docked.fullcontent .page-columns {
+    grid-template-columns:
+      [screen-start] 1.5em
+      [screen-start-inset page-start] minmax(50px, 100px)
+      [page-start-inset] 50px
+      [body-start-outset] 50px
+      [body-start] 1.5em
+      [body-content-start] minmax(500px, calc(1400px - 3em))
+      [body-content-end] 1.5em
+      [body-end body-end-outset page-end-inset page-end] 5fr
+      [screen-end-inset] 1.5em
+      [screen-end];
   }
 }
 
