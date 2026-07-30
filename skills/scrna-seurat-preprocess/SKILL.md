@@ -12,7 +12,7 @@ requirements: [r-4.3, seurat-5, seuratobject-5]
 metadata:
   display-name: scRNA-seq Seurat Preprocess
   source_workflow: scRNAseq_general_workflow
-  source_commit_validated: 692d8f8
+  source_commit_authored_against: 692d8f8
 ---
 
 # scRNA-seq Seurat Preprocess
@@ -30,6 +30,8 @@ create `cell_type` labels or run per-cell-type DEG here.
   `features.tsv.gz`, and `matrix.mtx.gz`; no upstream object is required.
 - **Example inputs:** `scRNAseq_general_workflow/data/ctrl_raw_feature_bc_matrix/` and
   `scRNAseq_general_workflow/data/stim_raw_feature_bc_matrix/`.
+- **Pilot boundary:** this runner accepts exactly one `ctrl` and one `stim` directory;
+  it does not generalize to additional samples or conditions.
 
 | Artifact | Contents |
 |---|---|
@@ -43,7 +45,7 @@ create `cell_type` labels or run per-cell-type DEG here.
 
 | Branch | Use it when | Completion evidence |
 |---|---|---|
-| **Reference run** (`reference_subset`, default) | You need the deterministic BMBL reference procedure. | The manifest records `reference_subset`, selected/input counts are reported, and the validator passes. This proves the procedure and artifacts, not complete-matrix coverage. |
+| **Reference run** (`reference_subset`, default) | You need the deterministic BMBL reference procedure. | The manifest records `reference_subset`, selected/input and post-QC counts, cluster count, and cut-binding status; the validator passes. |
 | **Verify existing output** | The runner has already produced an output directory; run only `validate_output.R`. | The validator reports the recorded branch and passes all internal checks. |
 | **Full run** (`--full-run`) | Complete-matrix processing is explicitly requested and adequate compute is available. | The manifest records `full_data` and `full_run: TRUE`; the validator confirms that mode and complete selected/input coverage. |
 
@@ -67,6 +69,20 @@ Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
 
 For the full-data branch, add `--full-run` to the run command. The validator reports
 the declared branch and selected/input counts for both samples.
+
+## Reference coverage on committed inputs
+
+The default selects the top `20000` barcodes per sample. For the committed inputs, the
+cut is not binding: all barcodes with at least 200 detected features are included.
+
+| Sample | Barcodes with at least 200 features | Captured by reference subset | `min.cells = 3` genes: reference / full input |
+|---|---:|---:|---:|
+| `ctrl` | 15,325 | 15,325 | 15,516 / 15,576 (delta 60; 0.385%) |
+| `stim` | 15,277 | 15,277 | 15,256 / 15,367 (delta 111; 0.722%) |
+
+On inputs with more real cells than the subset size, the runner warns and records
+`*_subset_cut_binding: TRUE` in `run_manifest.txt`; the depth-ranked cut then excludes
+some barcodes with at least 200 detected features.
 
 ## Gotchas
 

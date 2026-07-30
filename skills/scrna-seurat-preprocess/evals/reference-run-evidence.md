@@ -8,18 +8,27 @@ RDS and CSV artifacts remain ignored under `results/`.
     Rscript skills/scrna-seurat-preprocess/scripts/run.R \
       --ctrl scRNAseq_general_workflow/data/ctrl_raw_feature_bc_matrix \
       --stim scRNAseq_general_workflow/data/stim_raw_feature_bc_matrix \
-      --out results/scrna-seurat-preprocess-reference-v3
+      --out results/scrna-seurat-preprocess-reference-v7
 
 ## Validation command and exact log
 
     Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
-      --out results/scrna-seurat-preprocess-reference-v3
+      --out results/scrna-seurat-preprocess-reference-v7
 
-    Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-reference-v3 (branch=reference_subset; ctrl selected/input=20000/737280; stim selected/input=20000/737280)
+    Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-reference-v7 (branch=reference_subset; ctrl selected/input=20000/737280; ctrl post-QC=14957; stim selected/input=20000/737280; stim post-QC=14983; clusters=21)
 
 The branch-specific result is complete as a validated deterministic reference run: it
 demonstrates that the procedure works and its required artifacts are internally valid.
-It does not claim to have processed the complete 1,474,560-barcode inputs.
+For these committed inputs, the subset cut is not binding: the `20000`-barcode cap
+captures all 15,325 control and 15,277 stimulation barcodes with at least 200 detected
+features. The remaining branch difference is the `min.cells = 3` gene universe:
+control is 15,516 reference versus 15,576 full-input genes (delta 60; 0.385%), and
+stimulation is 15,256 versus 15,367 (delta 111; 0.722%).
+
+The validated output retains 14,957 control and 14,983 stimulation post-QC cells in
+21 clusters. The manifest records `ctrl_subset_cut_binding: FALSE` and
+`stim_subset_cut_binding: FALSE`; future inputs that exceed the real-cell subset
+capacity emit `TRUE` and a runner warning.
 
 ## sessionInfo.txt contents
 

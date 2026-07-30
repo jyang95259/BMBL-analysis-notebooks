@@ -126,6 +126,17 @@ if (inherits(combined, "Seurat")) {
   }
 }
 
+validated_post_qc_counts <- c(ctrl = NA_real_, stim = NA_real_)
+validated_cluster_count <- NA_real_
+if (inherits(combined, "Seurat")) {
+  validated_post_qc_counts <- as.numeric(table(factor(
+    as.character(combined$orig.ident),
+    levels = c("ctrl", "stim")
+  )))
+  names(validated_post_qc_counts) <- c("ctrl", "stim")
+  validated_cluster_count <- length(unique(as.character(combined$seurat_clusters)))
+}
+
 markers <- tryCatch(
   read.csv(file.path(args, "markers.csv"), stringsAsFactors = FALSE),
   error = function(error) {
@@ -201,6 +212,11 @@ manifest_counts <- vapply(
   manifest_count,
   numeric(1)
 )
+manifest_outcome_counts <- vapply(
+  c("ctrl_post_qc_cells", "stim_post_qc_cells", "cluster_count"),
+  manifest_count,
+  numeric(1)
+)
 
 qc_summary <- tryCatch(
   read.csv(file.path(args, "qc_summary.csv"), stringsAsFactors = FALSE),
@@ -210,7 +226,7 @@ qc_summary <- tryCatch(
   }
 )
 if (!is.null(qc_summary)) {
-  required_summary_columns <- c("sample", "input_barcodes", "subset_barcodes")
+  required_summary_columns <- c("sample", "input_barcodes", "subset_barcodes", "qc_cells")
   if (!all(required_summary_columns %in% colnames(qc_summary))) {
     record_failure("qc_summary.csv is missing required sample barcode-count columns")
   } else {
@@ -228,6 +244,22 @@ if (!is.null(qc_summary)) {
       if (any(!is.na(manifest_counts)) &&
           !isTRUE(all.equal(unname(manifest_counts), as.numeric(expected_counts), check.attributes = FALSE))) {
         record_failure("run_manifest.txt barcode counts must match qc_summary.csv")
+      }
+      expected_outcome_counts <- c(
+        ctrl_post_qc_cells = sample_rows$qc_cells[match("ctrl", sample_rows$sample)],
+        stim_post_qc_cells = sample_rows$qc_cells[match("stim", sample_rows$sample)],
+        cluster_count = validated_cluster_count
+      )
+      if (any(!is.na(manifest_outcome_counts)) &&
+          !isTRUE(all.equal(unname(manifest_outcome_counts), as.numeric(expected_outcome_counts), check.attributes = FALSE))) {
+        record_failure("run_manifest.txt post-QC cell and cluster counts must match the artifacts")
+      }
+      if (!isTRUE(all.equal(
+        unname(validated_post_qc_counts),
+        as.numeric(expected_outcome_counts[c("ctrl_post_qc_cells", "stim_post_qc_cells")]),
+        check.attributes = FALSE
+      ))) {
+        record_failure("qc_summary.csv post-QC cell counts must match combined_qc.rds")
       }
       if (identical(execution_branch, "full_data") &&
           any(sample_rows$input_barcodes != sample_rows$subset_barcodes)) {
@@ -252,5 +284,8 @@ message(
   "Validation passed for ", args,
   " (branch=", execution_branch,
   "; ctrl selected/input=", manifest_counts[["ctrl_selected_barcodes"]], "/", manifest_counts[["ctrl_input_barcodes"]],
-  "; stim selected/input=", manifest_counts[["stim_selected_barcodes"]], "/", manifest_counts[["stim_input_barcodes"]], ")"
+  "; ctrl post-QC=", manifest_outcome_counts[["ctrl_post_qc_cells"]],
+  "; stim selected/input=", manifest_counts[["stim_selected_barcodes"]], "/", manifest_counts[["stim_input_barcodes"]],
+  "; stim post-QC=", manifest_outcome_counts[["stim_post_qc_cells"]],
+  "; clusters=", manifest_outcome_counts[["cluster_count"]], ")"
 )

@@ -133,6 +133,14 @@ select_matrix_columns <- function(matrix, subset_barcodes_per_sample, full_run) 
   }
 }
 
+count_cells_with_min_features <- function(matrix, min_features = 200L) {
+  sum(Matrix::colSums(matrix > 0) >= min_features)
+}
+
+genes_with_min_cells <- function(matrix, min_cells = 3L) {
+  rownames(matrix)[Matrix::rowSums(matrix > 0) >= min_cells]
+}
+
 calc_percent_ribo <- function(object) {
   ribo_genes <- rownames(object)[grep("^RP[SL][[:digit:]]", rownames(object))]
   if (length(ribo_genes) == 0L) {
@@ -175,6 +183,10 @@ sample_specs <- list(
 sample_objects <- list()
 sample_summaries <- vector("list", length(sample_specs))
 names(sample_summaries) <- names(sample_specs)
+full_input_gene_sets <- vector("list", length(sample_specs))
+names(full_input_gene_sets) <- names(sample_specs)
+reference_gene_sets <- vector("list", length(sample_specs))
+names(reference_gene_sets) <- names(sample_specs)
 
 for (sample_name in names(sample_specs)) {
   spec <- sample_specs[[sample_name]]
@@ -186,11 +198,25 @@ for (sample_name in names(sample_specs)) {
     fail(paste("Expected a gene-expression sparse matrix from", spec$path))
   }
 
+  input_min_features_200_cells <- count_cells_with_min_features(raw_matrix)
+  full_input_gene_sets[[sample_name]] <- genes_with_min_cells(raw_matrix)
+
   selected <- select_matrix_columns(
     matrix = raw_matrix,
     subset_barcodes_per_sample = args$subset_barcodes_per_sample,
     full_run = args$full_run
   )
+  selected_min_features_200_cells <- count_cells_with_min_features(selected$matrix)
+  reference_gene_sets[[sample_name]] <- genes_with_min_cells(selected$matrix)
+  subset_cut_binding <- !args$full_run &&
+    selected_min_features_200_cells < input_min_features_200_cells
+  if (subset_cut_binding) {
+    warning(
+      "Reference subset cut is binding for ", spec$label, ": captured ",
+      selected_min_features_200_cells, " of ", input_min_features_200_cells,
+      " barcodes with at least 200 detected features."
+    )
+  }
 
   object <- CreateSeuratObject(
     selected$matrix,
@@ -208,6 +234,9 @@ for (sample_name in names(sample_specs)) {
     sample = spec$label,
     input_barcodes = ncol(raw_matrix),
     subset_barcodes = ncol(selected$matrix),
+    input_min_features_200_cells = input_min_features_200_cells,
+    selected_min_features_200_cells = selected_min_features_200_cells,
+    subset_cut_binding = subset_cut_binding,
     create_seurat_cells = ncol(object),
     subset_strategy = selected$subset_strategy,
     stringsAsFactors = FALSE
@@ -220,6 +249,21 @@ combined <- merge(
   add.cell.ids = vapply(sample_specs, function(spec) spec$label, character(1)),
   merge.data = TRUE
 )
+gene_universe_summary <- lapply(names(sample_specs), function(sample_name) {
+  reference_gene_universe <- length(reference_gene_sets[[sample_name]])
+  full_input_gene_universe <- length(full_input_gene_sets[[sample_name]])
+  list(
+    reference_gene_universe = reference_gene_universe,
+    full_input_gene_universe = full_input_gene_universe,
+    delta = full_input_gene_universe - reference_gene_universe,
+    delta_percent = if (full_input_gene_universe == 0L) {
+      0
+    } else {
+      (full_input_gene_universe - reference_gene_universe) / full_input_gene_universe * 100
+    }
+  )
+})
+names(gene_universe_summary) <- names(sample_specs)
 
 # These thresholds are copied from the committed workflow's example dataset. They are
 # example-dataset defaults for this skill's smoke test, not universal biology rules.
@@ -267,6 +311,9 @@ total_row <- data.frame(
   sample = "Total",
   input_barcodes = sum(qc_summary$input_barcodes),
   subset_barcodes = sum(qc_summary$subset_barcodes),
+  input_min_features_200_cells = sum(qc_summary$input_min_features_200_cells),
+  selected_min_features_200_cells = sum(qc_summary$selected_min_features_200_cells),
+  subset_cut_binding = any(qc_summary$subset_cut_binding),
   create_seurat_cells = sum(qc_summary$create_seurat_cells),
   subset_strategy = if (args$full_run) "full" else sprintf("top_%d_barcodes_per_sample", args$subset_barcodes_per_sample),
   qc_cells = ncol(combined_qc),
@@ -281,7 +328,7 @@ write.csv(markers, file.path(out_dir, "markers.csv"), row.names = FALSE)
 manifest_lines <- c(
   paste("skill_name:", "scrna-seurat-preprocess"),
   paste("source_workflow:", "scRNAseq_general_workflow"),
-  paste("source_commit_validated:", "692d8f8"),
+  paste("source_commit_authored_against:", "692d8f8"),
   paste("ctrl_dir:", ctrl_dir),
   paste("stim_dir:", stim_dir),
   paste("out_dir:", out_dir),
@@ -301,8 +348,25 @@ manifest_lines <- c(
   paste("seed:", args$seed),
   paste("ctrl_input_barcodes:", sample_summaries$ctrl$input_barcodes),
   paste("ctrl_selected_barcodes:", sample_summaries$ctrl$subset_barcodes),
+  paste("ctrl_input_min_features_200_cells:", sample_summaries$ctrl$input_min_features_200_cells),
+  paste("ctrl_selected_min_features_200_cells:", sample_summaries$ctrl$selected_min_features_200_cells),
+  paste("ctrl_subset_cut_binding:", sample_summaries$ctrl$subset_cut_binding),
   paste("stim_input_barcodes:", sample_summaries$stim$input_barcodes),
   paste("stim_selected_barcodes:", sample_summaries$stim$subset_barcodes),
+  paste("stim_input_min_features_200_cells:", sample_summaries$stim$input_min_features_200_cells),
+  paste("stim_selected_min_features_200_cells:", sample_summaries$stim$selected_min_features_200_cells),
+  paste("stim_subset_cut_binding:", sample_summaries$stim$subset_cut_binding),
+  paste("ctrl_reference_gene_universe:", gene_universe_summary$ctrl$reference_gene_universe),
+  paste("ctrl_full_input_gene_universe:", gene_universe_summary$ctrl$full_input_gene_universe),
+  paste("ctrl_gene_universe_delta:", gene_universe_summary$ctrl$delta),
+  paste("ctrl_gene_universe_delta_percent:", formatC(gene_universe_summary$ctrl$delta_percent, format = "f", digits = 3)),
+  paste("stim_reference_gene_universe:", gene_universe_summary$stim$reference_gene_universe),
+  paste("stim_full_input_gene_universe:", gene_universe_summary$stim$full_input_gene_universe),
+  paste("stim_gene_universe_delta:", gene_universe_summary$stim$delta),
+  paste("stim_gene_universe_delta_percent:", formatC(gene_universe_summary$stim$delta_percent, format = "f", digits = 3)),
+  paste("ctrl_post_qc_cells:", qc_summary$qc_cells[qc_summary$sample == "ctrl"]),
+  paste("stim_post_qc_cells:", qc_summary$qc_cells[qc_summary$sample == "stim"]),
+  paste("cluster_count:", length(unique(as.character(combined_qc$seurat_clusters)))),
   paste("qc_percent_mito_max:", qc_thresholds$percent_mito_max),
   paste("qc_percent_ribo_max:", qc_thresholds$percent_ribo_max),
   paste("qc_nFeature_RNA_min:", qc_thresholds$nFeature_RNA_min),
