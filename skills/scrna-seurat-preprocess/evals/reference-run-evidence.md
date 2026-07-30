@@ -8,14 +8,14 @@ RDS and CSV artifacts remain ignored under `results/`.
     Rscript skills/scrna-seurat-preprocess/scripts/run.R \
       --ctrl scRNAseq_general_workflow/data/ctrl_raw_feature_bc_matrix \
       --stim scRNAseq_general_workflow/data/stim_raw_feature_bc_matrix \
-      --out results/scrna-seurat-preprocess-reference-v7
+      --out results/scrna-seurat-preprocess-pi-reference-v8
 
 ## Validation command and exact log
 
     Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
-      --out results/scrna-seurat-preprocess-reference-v7
+      --out results/scrna-seurat-preprocess-pi-reference-v8
 
-    Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-reference-v7 (branch=reference_subset; ctrl selected/input=20000/737280; ctrl post-QC=14957; stim selected/input=20000/737280; stim post-QC=14983; clusters=21)
+    Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-pi-reference-v8 (branch=reference_subset; ctrl selected/input=20000/737280; ctrl post-QC=14957; stim selected/input=20000/737280; stim post-QC=14983; clusters=21)
 
 The branch-specific result is complete as a validated deterministic reference run: it
 demonstrates that the procedure works and its required artifacts are internally valid.

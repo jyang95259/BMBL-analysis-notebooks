@@ -3,7 +3,7 @@
 ## Prompt
 
 ```text
-Verify that results/scrna-seurat-preprocess-reference-v3 is a validated
+Verify that results/scrna-seurat-preprocess-pi-reference-v8 is a validated
 reference_subset scrna-seurat-preprocess output directory. Do not trust filenames
 alone; run the bundled validator and report the branch and selected/input barcode
 counts.
@@ -20,27 +20,28 @@ counts.
 Fresh Pi session command:
 
 ```bash
-pi --provider cation --model gpt-5.4 --approve --no-session \
+pi --mode json --provider cation --model gpt-5.4 --approve --no-session \
   --skill ./skills/scrna-seurat-preprocess/SKILL.md \
-  -p "Verify that results/scrna-seurat-preprocess-reference-v3 is a validated reference_subset scrna-seurat-preprocess output directory. Do not trust filenames alone; run the bundled validator and report the branch and selected/input barcode counts."
+  -p "Verify that results/scrna-seurat-preprocess-pi-reference-v8 is a validated reference_subset scrna-seurat-preprocess output directory. Do not trust filenames alone; run only the bundled validator and report the branch, selected/input barcode counts, post-QC counts, and cluster count."
 ```
 
-Pi response:
+Pi response (JSON mode):
 
 ```text
-Validated with the bundled validator:
-
-- Command: `Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R --out results/scrna-seurat-preprocess-reference-v3`
-- Result: `Validation passed`
-
-Reported by validator:
-- Branch: `reference_subset`
-- `ctrl` selected/input barcodes: `20000/737280`
-- `stim` selected/input barcodes: `20000/737280`
-
-So `results/scrna-seurat-preprocess-reference-v3` is a validated
-`reference_subset` `scrna-seurat-preprocess` output directory.
+Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-pi-reference-v8 (branch=reference_subset; ctrl selected/input=20000/737280; ctrl post-QC=14957; stim selected/input=20000/737280; stim post-QC=14983; clusters=21)
 ```
+
+The command run was:
+
+```bash
+Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
+  --out results/scrna-seurat-preprocess-pi-reference-v8
+```
+
+The reported evidence is
+`reference_subset`, `20000/737280` selected/input barcodes for both samples, 14,957
+control and 14,983 stimulation post-QC cells, and 21 clusters. Thus the output is
+validated by internal checks, not filenames alone.
 
 ## Judgment
 

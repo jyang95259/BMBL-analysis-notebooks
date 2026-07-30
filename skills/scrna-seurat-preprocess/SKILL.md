@@ -60,6 +60,9 @@ Rscript skills/scrna-seurat-preprocess/scripts/run.R \
   --out results/scrna-seurat-preprocess-smoke
 ```
 
+`--out` must name a new or empty directory; the runner rejects non-empty
+directories so validation cannot mix a failed run with stale artifacts.
+
 Run the bundled validator; its successful internal checks are the completion evidence:
 
 ```bash
@@ -69,6 +72,10 @@ Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
 
 For the full-data branch, add `--full-run` to the run command. The validator reports
 the declared branch and selected/input counts for both samples.
+
+The reference branch is locally validated. Full-data execution may need OSC or other
+high-memory compute; on OSC, begin with `module load R/4.3.0` as documented by this
+project.
 
 ## Reference coverage on committed inputs
 

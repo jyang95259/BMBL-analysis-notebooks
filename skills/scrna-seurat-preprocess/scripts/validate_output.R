@@ -45,9 +45,24 @@ args <- tryCatch(
   }
 )
 
-if (!requireNamespace("Seurat", quietly = TRUE)) {
-  message("ERROR: Required R package is missing: Seurat")
+required_packages <- c("Seurat", "SeuratObject")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))
+]
+if (length(missing_packages) > 0L) {
+  message("ERROR: Required R packages are missing: ", paste(missing_packages, collapse = ", "))
   quit(save = "no", status = 1L)
+}
+for (package_name in required_packages) {
+  version <- packageVersion(package_name)
+  major_version <- as.integer(strsplit(as.character(version), ".", fixed = TRUE)[[1L]][[1L]])
+  if (is.na(major_version) || major_version != 5L) {
+    message(
+      "ERROR: This validator requires ", package_name, " major version 5; found ",
+      as.character(version)
+    )
+    quit(save = "no", status = 1L)
+  }
 }
 suppressWarnings(suppressPackageStartupMessages(library(Seurat)))
 

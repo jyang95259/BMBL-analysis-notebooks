@@ -104,6 +104,17 @@ normalize_output_dir <- function(path) {
   if (!dir.exists(parent)) {
     fail(paste("Parent directory for output does not exist and could not be created:", parent))
   }
+  if (file.exists(expanded) && !dir.exists(expanded)) {
+    fail(paste("Output path exists but is not a directory:", expanded))
+  }
+  if (dir.exists(expanded) && length(list.files(expanded, all.files = TRUE, no.. = TRUE)) > 0L) {
+    fail(
+      paste(
+        "Output directory must be new or empty to avoid mixing stale artifacts:",
+        expanded
+      )
+    )
+  }
   if (!dir.exists(expanded)) {
     dir.create(expanded, recursive = TRUE, showWarnings = FALSE)
   }
@@ -157,6 +168,18 @@ ensure_package_versions <- function() {
   missing <- needed[!vapply(needed, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]
   if (length(missing) > 0L) {
     fail(paste("Required R packages are missing:", paste(missing, collapse = ", ")))
+  }
+  for (package_name in c("Seurat", "SeuratObject")) {
+    version <- packageVersion(package_name)
+    major_version <- as.integer(strsplit(as.character(version), ".", fixed = TRUE)[[1L]][[1L]])
+    if (is.na(major_version) || major_version != 5L) {
+      fail(
+        paste0(
+          "This runner requires ", package_name, " major version 5; found ",
+          as.character(version)
+        )
+      )
+    }
   }
 }
 
