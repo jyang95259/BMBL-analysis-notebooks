@@ -1,12 +1,12 @@
 ---
 name: scrna-seurat-preprocess
 description: >
-  Seurat v5 preprocessing for raw 10x scRNA-seq matrices through QC, normalization,
-  PCA, clustering, UMAP, and cluster marker artifacts. Reach for this to preprocess
-  raw 10x gene-expression matrices, generate cluster-level marker evidence, or verify
-  that a preprocessing output directory is complete with the bundled validator. For
-  manual cell-type annotation, reference label transfer, batch integration, or
-  per-cell-type DEG use a downstream annotation or label-transfer workflow instead.
+  Seurat v5 reference preprocessing for paired raw 10x control and stimulation
+  directories. Use when an agent needs to run the deterministic BMBL reference subset
+  or verify artifacts produced by this runner. Use the explicit full-run branch only
+  when complete-matrix processing is requested and compute is available. For
+  annotation, label transfer, integration, or per-cell-type DEG, use the downstream
+  workflow instead.
 license: lab-internal
 requirements: [r-4.3, seurat-5, seuratobject-5]
 metadata:
@@ -17,45 +17,40 @@ metadata:
 
 # scRNA-seq Seurat Preprocess
 
-This skill packages the deterministic first half of the lab's general Seurat workflow:
-raw 10x matrices through QC, normalization, PCA, clustering, UMAP, and marker
-artifacts. It expects raw integer 10x `raw_feature_bc_matrix/` directories for a
-control and stimulation sample, and it runs the bundled
-`scripts/run.R` entrypoint instead of reconstructing notebook code by hand. The
-output is a QC-filtered Seurat object, a QC summary table, a cluster marker table, a
-run manifest, and exact session/version evidence.
-
 ## When to use it
 
-Use this when you need the lab's baseline Seurat preprocessing on raw 10x
-gene-expression matrices and want artifact-backed evidence that preprocessing
-completed correctly. Stop here once you have clusters, UMAP, and marker evidence.
-For manual cluster-to-cell-type interpretation, use the downstream annotation
-notebook; for reference-based label transfer, use a label-transfer workflow; for
-batch correction or integration across many samples, use an integration workflow
-instead. This skill must not fabricate `cell_type` labels or run per-cell-type DEG.
+Use this runner for paired raw 10x control and stimulation inputs. End with clusters,
+UMAP, and marker artifacts, then hand marker interpretation to the downstream
+annotation workflow. Use the label-transfer workflow for reference annotation and an
+integration workflow for multi-sample batch correction. Do not create `cell_type`
+labels or run per-cell-type DEG here.
 
-## Inputs
+## Inputs and outputs
 
-- **Object / format:** two raw integer 10x directories, each containing `barcodes.tsv.gz`,
-  `features.tsv.gz`, and `matrix.mtx.gz`
-- **Required upstream:** none; this is the entry point for the preprocessing half of
-  the Seurat workflow
-- **Example data:** `scRNAseq_general_workflow/data/ctrl_raw_feature_bc_matrix/` and
-  `scRNAseq_general_workflow/data/stim_raw_feature_bc_matrix/`
+- **Inputs:** two raw integer 10x directories, each with `barcodes.tsv.gz`,
+  `features.tsv.gz`, and `matrix.mtx.gz`; no upstream object is required.
+- **Example inputs:** `scRNAseq_general_workflow/data/ctrl_raw_feature_bc_matrix/` and
+  `scRNAseq_general_workflow/data/stim_raw_feature_bc_matrix/`.
 
-## How to run
+| Artifact | Contents |
+|---|---|
+| `combined_qc.rds` | QC-filtered Seurat object with RNA counts, PCA, UMAP, and `seurat_clusters` |
+| `qc_summary.csv` | Per-sample and total input, selected, and QC-passing cell counts |
+| `markers.csv` | Positive per-cluster markers from `FindAllMarkers()` after `JoinLayers()` |
+| `run_manifest.txt` | Input paths, branch, selected/input counts, QC thresholds, and seed |
+| `sessionInfo.txt` | Exact R and package versions used for the run |
 
-Run the bundled script with explicit paths. It has two explicit execution branches:
+## Choose a branch
 
-- `reference_subset` (default): selects the top `20000` barcodes per sample by total
-  counts, deterministically, so Pi can exercise the committed raw 10x directories
-  without processing every barcode. It is complete when the subset ran and the
-  required artifacts validate internally; it is evidence that the procedure works,
-  not a claim that the full matrices were processed.
-- `full_data` (`--full-run`): processes every supplied barcode. It is complete only
-  when `--full-run` is recorded and the artifacts cover the complete supplied
-  matrices.
+| Branch | Use it when | Completion evidence |
+|---|---|---|
+| **Reference run** (`reference_subset`, default) | You need the deterministic BMBL reference procedure. | The manifest records `reference_subset`, selected/input counts are reported, and the validator passes. This proves the procedure and artifacts, not complete-matrix coverage. |
+| **Verify existing output** | The runner has already produced an output directory. | The validator reports the recorded branch and passes all internal checks. |
+| **Full run** (`--full-run`) | Complete-matrix processing is explicitly requested and adequate compute is available. | The manifest records `full_data` and `full_run: TRUE`; the validator confirms that mode and complete selected/input coverage. |
+
+## Commands
+
+Run the reference branch with explicit paths:
 
 ```bash
 Rscript skills/scrna-seurat-preprocess/scripts/run.R \
@@ -64,7 +59,7 @@ Rscript skills/scrna-seurat-preprocess/scripts/run.R \
   --out results/scrna-seurat-preprocess-smoke
 ```
 
-Validate the output directory instead of trusting filenames alone:
+Run the bundled validator; its successful internal checks are the completion evidence:
 
 ```bash
 Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
@@ -72,32 +67,10 @@ Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
 ```
 
 For the full-data branch, add `--full-run` to the run command. The validator reports
-the declared branch and selected/input barcode counts for both samples.
-
-## Output
-
-| Key / object | What it holds |
-|---|---|
-| `combined_qc.rds` | QC-filtered Seurat object with both samples, RNA counts retained, PCA, UMAP, and `seurat_clusters` |
-| `qc_summary.csv` | Per-sample and total barcode/cell counts before and after QC |
-| `markers.csv` | Per-cluster positive marker table from `FindAllMarkers()` after `JoinLayers()` |
-| `run_manifest.txt` | Input paths, declared execution branch, selected/input barcode counts, QC thresholds, seed, and artifact inventory |
-| `sessionInfo.txt` | Exact R, Seurat, SeuratObject, and related package versions used for the run |
-
-For either branch, completion is proven only when `validate_output.R` exits `0` and
-confirms all required artifacts, stable `ctrl` and `stim` identities, QC metadata,
-PCA and UMAP reductions, retained raw counts, marker columns, branch barcode counts,
-and no fabricated `cell_type` metadata. Interpret that result using the branch-specific
-criterion above.
+the declared branch and selected/input counts for both samples.
 
 ## Gotchas
 
 | Gotcha | What happens / fix |
 |---|---|
-| `Warning: Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.` | Observed during a real run when the committed control and stimulation 10x inputs reused barcode names across samples. The bundled `run.R` now prevents ambiguous Seurat auto-renaming by merging with explicit `ctrl` and `stim` `add.cell.ids`, independent of directory names. |
-
----
-
-**Next**: review marker evidence manually in
-`scRNAseq_general_workflow/2_annotate_cell_type.rmd` before any cell-type annotation
-or per-cell-type DEG.
+| `Warning: Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.` | Observed when control and stimulation inputs reused barcode names. `run.R` assigns the fixed role labels `ctrl` and `stim` to `project`, `orig.ident`, and merge `add.cell.ids`, so names remain unique even when both directories are named `raw_feature_bc_matrix`. |
