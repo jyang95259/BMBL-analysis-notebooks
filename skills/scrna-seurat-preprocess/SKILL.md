@@ -19,11 +19,10 @@ metadata:
 
 ## When to use it
 
-Use this runner for paired raw 10x control and stimulation inputs. End with clusters,
-UMAP, and marker artifacts, then hand marker interpretation to the downstream
-annotation workflow. Use the label-transfer workflow for reference annotation and an
-integration workflow for multi-sample batch correction. Do not create `cell_type`
-labels or run per-cell-type DEG here.
+End with clusters, UMAP, and marker artifacts, then hand marker interpretation to the
+downstream annotation workflow. Use the label-transfer workflow for reference
+annotation and an integration workflow for multi-sample batch correction. Do not
+create `cell_type` labels or run per-cell-type DEG here.
 
 ## Inputs and outputs
 
@@ -45,7 +44,7 @@ labels or run per-cell-type DEG here.
 | Branch | Use it when | Completion evidence |
 |---|---|---|
 | **Reference run** (`reference_subset`, default) | You need the deterministic BMBL reference procedure. | The manifest records `reference_subset`, selected/input counts are reported, and the validator passes. This proves the procedure and artifacts, not complete-matrix coverage. |
-| **Verify existing output** | The runner has already produced an output directory. | The validator reports the recorded branch and passes all internal checks. |
+| **Verify existing output** | The runner has already produced an output directory; run only `validate_output.R`. | The validator reports the recorded branch and passes all internal checks. |
 | **Full run** (`--full-run`) | Complete-matrix processing is explicitly requested and adequate compute is available. | The manifest records `full_data` and `full_run: TRUE`; the validator confirms that mode and complete selected/input coverage. |
 
 ## Commands
