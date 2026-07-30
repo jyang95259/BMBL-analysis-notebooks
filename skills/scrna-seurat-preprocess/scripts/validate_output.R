@@ -168,6 +168,16 @@ if (length(execution_branch) != 1L || !execution_branch %in% c("reference_subset
   record_failure("run_manifest.txt must declare execution_branch as reference_subset or full_data")
 }
 
+expected_full_run <- if (identical(execution_branch, "full_data")) "TRUE" else "FALSE"
+if (!identical(manifest_value("full_run"), expected_full_run)) {
+  record_failure(
+    paste(
+      "run_manifest.txt must record full_run:", expected_full_run,
+      "for execution_branch:", execution_branch
+    )
+  )
+}
+
 if (!identical(manifest_value("sample_labels"), "ctrl,stim")) {
   record_failure("run_manifest.txt must declare stable sample_labels: ctrl,stim")
 }
