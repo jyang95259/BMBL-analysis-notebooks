@@ -1,10 +1,5 @@
 #!/usr/bin/env Rscript
 
-suppressWarnings(suppressPackageStartupMessages({
-  library(Seurat)
-  library(Matrix)
-}))
-
 fail <- function(message, status = 1L) {
   message("ERROR: ", message)
   quit(save = "no", status = status)
@@ -159,6 +154,10 @@ ensure_package_versions <- function() {
 
 args <- parse_args(commandArgs(trailingOnly = TRUE))
 ensure_package_versions()
+suppressWarnings(suppressPackageStartupMessages({
+  library(Seurat)
+  library(Matrix)
+}))
 
 ctrl_dir <- normalize_input_dir(args$ctrl)
 stim_dir <- normalize_input_dir(args$stim)
@@ -167,8 +166,10 @@ out_dir <- normalize_output_dir(args$out)
 set.seed(args$seed)
 
 sample_specs <- list(
-  ctrl = list(path = ctrl_dir, label = basename(ctrl_dir)),
-  stim = list(path = stim_dir, label = basename(stim_dir))
+  # Stable role labels remain distinct when both inputs use Cell Ranger's
+  # conventional raw_feature_bc_matrix directory name.
+  ctrl = list(path = ctrl_dir, label = "ctrl"),
+  stim = list(path = stim_dir, label = "stim")
 )
 
 sample_objects <- list()
@@ -284,10 +285,24 @@ manifest_lines <- c(
   paste("ctrl_dir:", ctrl_dir),
   paste("stim_dir:", stim_dir),
   paste("out_dir:", out_dir),
+  paste("execution_branch:", if (args$full_run) "full_data" else "reference_subset"),
+  paste(
+    "completion_criterion:",
+    if (args$full_run) {
+      "full_data: --full-run recorded and artifacts cover the complete supplied matrices"
+    } else {
+      "reference_subset: deterministic subset ran and required artifacts are internally valid evidence that the procedure works"
+    }
+  ),
+  paste("sample_labels:", paste(vapply(sample_specs, function(spec) spec$label, character(1)), collapse = ",")),
   paste("full_run:", args$full_run),
   paste("subset_barcodes_per_sample:", if (args$full_run) "disabled" else args$subset_barcodes_per_sample),
   paste("subset_policy:", if (args$full_run) "full_input" else "top_barcodes_by_total_counts_per_sample"),
   paste("seed:", args$seed),
+  paste("ctrl_input_barcodes:", sample_summaries$ctrl$input_barcodes),
+  paste("ctrl_selected_barcodes:", sample_summaries$ctrl$subset_barcodes),
+  paste("stim_input_barcodes:", sample_summaries$stim$input_barcodes),
+  paste("stim_selected_barcodes:", sample_summaries$stim$subset_barcodes),
   paste("qc_percent_mito_max:", qc_thresholds$percent_mito_max),
   paste("qc_percent_ribo_max:", qc_thresholds$percent_ribo_max),
   paste("qc_nFeature_RNA_min:", qc_thresholds$nFeature_RNA_min),

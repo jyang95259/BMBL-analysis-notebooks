@@ -46,10 +46,16 @@ instead. This skill must not fabricate `cell_type` labels or run per-cell-type D
 
 ## How to run
 
-Run the bundled script with explicit paths. The default smoke-test mode uses the top
-`20000` barcodes per sample by total counts so Pi can exercise the committed raw 10x
-directories deterministically without processing every barcode. Use `--full-run` when
-you intentionally want the complete raw matrices.
+Run the bundled script with explicit paths. It has two explicit execution branches:
+
+- `reference_subset` (default): selects the top `20000` barcodes per sample by total
+  counts, deterministically, so Pi can exercise the committed raw 10x directories
+  without processing every barcode. It is complete when the subset ran and the
+  required artifacts validate internally; it is evidence that the procedure works,
+  not a claim that the full matrices were processed.
+- `full_data` (`--full-run`): processes every supplied barcode. It is complete only
+  when `--full-run` is recorded and the artifacts cover the complete supplied
+  matrices.
 
 ```bash
 Rscript skills/scrna-seurat-preprocess/scripts/run.R \
@@ -65,6 +71,9 @@ Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
   --out results/scrna-seurat-preprocess-smoke
 ```
 
+For the full-data branch, add `--full-run` to the run command. The validator reports
+the declared branch and selected/input barcode counts for both samples.
+
 ## Output
 
 | Key / object | What it holds |
@@ -72,19 +81,20 @@ Rscript skills/scrna-seurat-preprocess/scripts/validate_output.R \
 | `combined_qc.rds` | QC-filtered Seurat object with both samples, RNA counts retained, PCA, UMAP, and `seurat_clusters` |
 | `qc_summary.csv` | Per-sample and total barcode/cell counts before and after QC |
 | `markers.csv` | Per-cluster positive marker table from `FindAllMarkers()` after `JoinLayers()` |
-| `run_manifest.txt` | Input paths, subset/full-run mode, QC thresholds, seed, and artifact inventory |
+| `run_manifest.txt` | Input paths, declared execution branch, selected/input barcode counts, QC thresholds, seed, and artifact inventory |
 | `sessionInfo.txt` | Exact R, Seurat, SeuratObject, and related package versions used for the run |
 
-Completion is proven only when `validate_output.R` exits `0` and confirms that all
-required artifacts exist, both samples are present, QC metadata exists, PCA and UMAP
-reductions exist, raw counts remain available, marker columns are intact, and no
-`cell_type` metadata was fabricated.
+For either branch, completion is proven only when `validate_output.R` exits `0` and
+confirms all required artifacts, stable `ctrl` and `stim` identities, QC metadata,
+PCA and UMAP reductions, retained raw counts, marker columns, branch barcode counts,
+and no fabricated `cell_type` metadata. Interpret that result using the branch-specific
+criterion above.
 
 ## Gotchas
 
 | Gotcha | What happens / fix |
 |---|---|
-| `Warning: Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.` | Observed during a real run when the committed control and stimulation 10x inputs reused barcode names across samples. The bundled `run.R` now prevents ambiguous Seurat auto-renaming by merging with explicit `add.cell.ids` derived from each sample directory name. |
+| `Warning: Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.` | Observed during a real run when the committed control and stimulation 10x inputs reused barcode names across samples. The bundled `run.R` now prevents ambiguous Seurat auto-renaming by merging with explicit `ctrl` and `stim` `add.cell.ids`, independent of directory names. |
 
 ---
 

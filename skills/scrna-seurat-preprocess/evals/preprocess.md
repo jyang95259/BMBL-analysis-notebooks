@@ -48,7 +48,7 @@ Output directory:
 
 - /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-smoke
 
-Validation:
+Validation of the reference_subset branch:
 
 - Validation passed for /Users/jonathanyang/Documents/BMBL-analysis-notebooks-phase2/results/scrna-seurat-preprocess-smoke
 
@@ -62,13 +62,13 @@ Artifacts:
 
 QC summary from qc_summary.csv:
 
-- ctrl_raw_feature_bc_matrix: 737,280 input barcodes -> 20,000 subset -> 14,957 QC-passing cells
-- stim_raw_feature_bc_matrix: 737,280 input barcodes -> 20,000 subset -> 14,983 QC-passing cells
+- ctrl: 737,280 input barcodes -> 20,000 selected -> 14,957 QC-passing cells
+- stim: 737,280 input barcodes -> 20,000 selected -> 14,983 QC-passing cells
 - Total: 1,474,560 input barcodes -> 40,000 subset -> 29,940 QC-passing cells
 
 Run mode:
 
-- Smoke test mode
+- execution_branch: reference_subset
 - full_run: FALSE
 - subset_barcodes_per_sample: 20000
 ```
@@ -76,5 +76,6 @@ Run mode:
 ## Judgment
 
 **Pass.** In a fresh Pi session with the skill explicitly loaded, Pi used the bundled
-runner and validator, produced a complete output directory, and reported the artifact
-paths without inventing annotation or DEG.
+runner and validator, produced a validated `reference_subset` output directory, and
+reported artifact paths without inventing annotation or DEG. This is evidence that the
+procedure works on a deterministic subset, not an unqualified full-data completion claim.

@@ -1,9 +1,5 @@
 #!/usr/bin/env Rscript
 
-suppressWarnings(suppressPackageStartupMessages({
-  library(Seurat)
-}))
-
 failures <- character()
 
 record_failure <- function(message) {
@@ -49,6 +45,12 @@ args <- tryCatch(
   }
 )
 
+if (!requireNamespace("Seurat", quietly = TRUE)) {
+  message("ERROR: Required R package is missing: Seurat")
+  quit(save = "no", status = 1L)
+}
+suppressWarnings(suppressPackageStartupMessages(library(Seurat)))
+
 required_files <- c(
   "combined_qc.rds",
   "qc_summary.csv",
@@ -84,8 +86,14 @@ if (!inherits(combined, "Seurat")) {
 
 if (inherits(combined, "Seurat")) {
   sample_levels <- unique(as.character(combined$orig.ident))
-  if (length(sample_levels) < 2L) {
-    record_failure("Seurat object does not contain cells from both inputs")
+  expected_samples <- c("ctrl", "stim")
+  if (!setequal(sample_levels, expected_samples)) {
+    record_failure(
+      paste(
+        "Seurat object must contain the stable ctrl and stim sample identities; found:",
+        paste(sort(sample_levels), collapse = ", ")
+      )
+    )
   }
 
   required_meta <- c("percent.mito", "percent.ribo", "seurat_clusters")
@@ -147,6 +155,41 @@ if (!any(grepl("^source_workflow: scRNAseq_general_workflow$", manifest_lines)))
   record_failure("run_manifest.txt is missing the expected source workflow provenance")
 }
 
+manifest_value <- function(key) {
+  matches <- manifest_lines[startsWith(manifest_lines, paste0(key, ": "))]
+  if (length(matches) != 1L) {
+    return(NULL)
+  }
+  sub(paste0("^", key, ": "), "", matches)
+}
+
+execution_branch <- manifest_value("execution_branch")
+if (length(execution_branch) != 1L || !execution_branch %in% c("reference_subset", "full_data")) {
+  record_failure("run_manifest.txt must declare execution_branch as reference_subset or full_data")
+}
+
+if (!identical(manifest_value("sample_labels"), "ctrl,stim")) {
+  record_failure("run_manifest.txt must declare stable sample_labels: ctrl,stim")
+}
+
+qc_summary <- tryCatch(
+  read.csv(file.path(args, "qc_summary.csv"), stringsAsFactors = FALSE),
+  error = function(error) {
+    record_failure(paste("qc_summary.csv could not be read:", conditionMessage(error)))
+    NULL
+  }
+)
+if (!is.null(qc_summary)) {
+  sample_rows <- qc_summary[qc_summary$sample %in% c("ctrl", "stim"), , drop = FALSE]
+  if (nrow(sample_rows) != 2L || any(sample_rows$input_barcodes < sample_rows$subset_barcodes)) {
+    record_failure("qc_summary.csv must report valid input and selected barcode counts for ctrl and stim")
+  }
+  if (identical(execution_branch, "full_data") && nrow(sample_rows) == 2L &&
+      any(sample_rows$input_barcodes != sample_rows$subset_barcodes)) {
+    record_failure("full_data branch must select every barcode from each supplied matrix")
+  }
+}
+
 session_lines <- readLines(file.path(args, "sessionInfo.txt"), warn = FALSE)
 for (pattern in c("^Seurat: ", "^SeuratObject: ", "^Matrix: ")) {
   if (!any(grepl(pattern, session_lines))) {
@@ -158,4 +201,9 @@ if (length(failures) > 0L) {
   fail_and_exit()
 }
 
-message("Validation passed for ", args)
+message(
+  "Validation passed for ", args,
+  " (branch=", execution_branch,
+  "; ctrl selected/input=", manifest_value("ctrl_selected_barcodes"), "/", manifest_value("ctrl_input_barcodes"),
+  "; stim selected/input=", manifest_value("stim_selected_barcodes"), "/", manifest_value("stim_input_barcodes"), ")"
+)
