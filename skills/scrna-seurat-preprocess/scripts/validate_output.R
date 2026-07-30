@@ -163,6 +163,15 @@ manifest_value <- function(key) {
   sub(paste0("^", key, ": "), "", matches)
 }
 
+manifest_count <- function(key) {
+  value <- manifest_value(key)
+  if (length(value) != 1L || !grepl("^[0-9]+$", value)) {
+    record_failure(paste("run_manifest.txt must contain one non-negative integer", key, "value"))
+    return(NA_real_)
+  }
+  as.numeric(value)
+}
+
 execution_branch <- manifest_value("execution_branch")
 if (length(execution_branch) != 1L || !execution_branch %in% c("reference_subset", "full_data")) {
   record_failure("run_manifest.txt must declare execution_branch as reference_subset or full_data")
@@ -182,6 +191,17 @@ if (!identical(manifest_value("sample_labels"), "ctrl,stim")) {
   record_failure("run_manifest.txt must declare stable sample_labels: ctrl,stim")
 }
 
+manifest_counts <- vapply(
+  c(
+    "ctrl_input_barcodes",
+    "ctrl_selected_barcodes",
+    "stim_input_barcodes",
+    "stim_selected_barcodes"
+  ),
+  manifest_count,
+  numeric(1)
+)
+
 qc_summary <- tryCatch(
   read.csv(file.path(args, "qc_summary.csv"), stringsAsFactors = FALSE),
   error = function(error) {
@@ -190,13 +210,30 @@ qc_summary <- tryCatch(
   }
 )
 if (!is.null(qc_summary)) {
-  sample_rows <- qc_summary[qc_summary$sample %in% c("ctrl", "stim"), , drop = FALSE]
-  if (nrow(sample_rows) != 2L || any(sample_rows$input_barcodes < sample_rows$subset_barcodes)) {
-    record_failure("qc_summary.csv must report valid input and selected barcode counts for ctrl and stim")
-  }
-  if (identical(execution_branch, "full_data") && nrow(sample_rows) == 2L &&
-      any(sample_rows$input_barcodes != sample_rows$subset_barcodes)) {
-    record_failure("full_data branch must select every barcode from each supplied matrix")
+  required_summary_columns <- c("sample", "input_barcodes", "subset_barcodes")
+  if (!all(required_summary_columns %in% colnames(qc_summary))) {
+    record_failure("qc_summary.csv is missing required sample barcode-count columns")
+  } else {
+    sample_rows <- qc_summary[qc_summary$sample %in% c("ctrl", "stim"), , drop = FALSE]
+    if (nrow(sample_rows) != 2L || !setequal(sample_rows$sample, c("ctrl", "stim")) ||
+        any(sample_rows$input_barcodes < sample_rows$subset_barcodes)) {
+      record_failure("qc_summary.csv must report valid input and selected barcode counts for ctrl and stim")
+    } else {
+      expected_counts <- c(
+        ctrl_input_barcodes = sample_rows$input_barcodes[match("ctrl", sample_rows$sample)],
+        ctrl_selected_barcodes = sample_rows$subset_barcodes[match("ctrl", sample_rows$sample)],
+        stim_input_barcodes = sample_rows$input_barcodes[match("stim", sample_rows$sample)],
+        stim_selected_barcodes = sample_rows$subset_barcodes[match("stim", sample_rows$sample)]
+      )
+      if (any(!is.na(manifest_counts)) &&
+          !isTRUE(all.equal(unname(manifest_counts), as.numeric(expected_counts), check.attributes = FALSE))) {
+        record_failure("run_manifest.txt barcode counts must match qc_summary.csv")
+      }
+      if (identical(execution_branch, "full_data") &&
+          any(sample_rows$input_barcodes != sample_rows$subset_barcodes)) {
+        record_failure("full_data branch must select every barcode from each supplied matrix")
+      }
+    }
   }
 }
 
@@ -214,6 +251,6 @@ if (length(failures) > 0L) {
 message(
   "Validation passed for ", args,
   " (branch=", execution_branch,
-  "; ctrl selected/input=", manifest_value("ctrl_selected_barcodes"), "/", manifest_value("ctrl_input_barcodes"),
-  "; stim selected/input=", manifest_value("stim_selected_barcodes"), "/", manifest_value("stim_input_barcodes"), ")"
+  "; ctrl selected/input=", manifest_counts[["ctrl_selected_barcodes"]], "/", manifest_counts[["ctrl_input_barcodes"]],
+  "; stim selected/input=", manifest_counts[["stim_selected_barcodes"]], "/", manifest_counts[["stim_input_barcodes"]], ")"
 )
