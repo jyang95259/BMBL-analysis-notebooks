@@ -133,9 +133,12 @@ select_matrix_columns <- function(matrix, subset_barcodes_per_sample, full_run) 
     )
   } else {
     counts <- Matrix::colSums(matrix)
-    order_index <- order(counts, colnames(matrix), decreasing = TRUE)
+    # method = "radix" sorts the barcode key in the C locale. order()'s default
+    # would fall back to shell sort for a character key and break count ties --
+    # and set the column order -- under whatever collation locale is in effect.
+    order_index <- order(counts, colnames(matrix), decreasing = TRUE, method = "radix")
     keep <- order_index[seq_len(subset_barcodes_per_sample)]
-    keep <- keep[order(colnames(matrix)[keep])]
+    keep <- keep[order(colnames(matrix)[keep], method = "radix")]
     list(
       matrix = matrix[, keep, drop = FALSE],
       selected_barcodes = colnames(matrix)[keep],
