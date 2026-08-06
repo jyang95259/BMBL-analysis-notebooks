@@ -222,7 +222,13 @@ for (sample_name in names(sample_specs)) {
   }
 
   input_min_features_200_cells <- count_cells_with_min_features(raw_matrix)
-  full_input_gene_sets[[sample_name]] <- genes_with_min_cells(raw_matrix)
+  # CreateSeuratObject() drops barcodes below min.features and only then applies
+  # min.cells, so the gene universe a --full-run would use is the one measured on
+  # those surviving barcodes. Measuring it across all raw barcodes instead would
+  # count genes seen only in empty droplets.
+  full_input_gene_sets[[sample_name]] <- genes_with_min_cells(
+    raw_matrix[, Matrix::colSums(raw_matrix > 0) >= 200L, drop = FALSE]
+  )
 
   selected <- select_matrix_columns(
     matrix = raw_matrix,
@@ -230,7 +236,6 @@ for (sample_name in names(sample_specs)) {
     full_run = args$full_run
   )
   selected_min_features_200_cells <- count_cells_with_min_features(selected$matrix)
-  reference_gene_sets[[sample_name]] <- genes_with_min_cells(selected$matrix)
   subset_cut_binding <- !args$full_run &&
     selected_min_features_200_cells < input_min_features_200_cells
   if (subset_cut_binding) {
@@ -248,6 +253,9 @@ for (sample_name in names(sample_specs)) {
     min.features = 200,
     project = spec$label
   )
+  # The object's own features are this branch's gene universe; selected$matrix still
+  # holds the sub-threshold barcodes CreateSeuratObject has just dropped.
+  reference_gene_sets[[sample_name]] <- rownames(object)
 
   object$percent.ribo <- calc_percent_ribo(object)
   object <- PercentageFeatureSet(object, "^MT-", col.name = "percent.mito")

@@ -21,9 +21,14 @@ The branch-specific result is complete as a validated deterministic reference ru
 demonstrates that the procedure works and its required artifacts are internally valid.
 For these committed inputs, the subset cut is not binding: the `20000`-barcode cap
 captures all 15,325 control and 15,277 stimulation barcodes with at least 200 detected
-features. The remaining branch difference is the `min.cells = 3` gene universe:
-control is 15,516 reference versus 15,576 full-input genes (delta 60; 0.385%), and
-stimulation is 15,256 versus 15,367 (delta 111; 0.722%).
+features. Because the cut is not binding, both branches build the object from the
+same barcodes and therefore share one `min.cells = 3` gene universe: 15,397 genes for
+control and 15,153 for stimulation, a branch delta of 0.
+
+The run recorded above predates that correction. It was produced while the runner
+measured the full-input gene universe across all 737,280 raw barcodes, which counted
+genes detected only in empty droplets and reported the branch delta as 60 (control)
+and 111 (stimulation). Its barcode, post-QC, and cluster counts are unaffected.
 
 The validated output retains 14,957 control and 14,983 stimulation post-QC cells in
 21 clusters. The manifest records `ctrl_subset_cut_binding: FALSE` and

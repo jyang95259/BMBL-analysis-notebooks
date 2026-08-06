@@ -84,8 +84,14 @@ cut is not binding: all barcodes with at least 200 detected features are include
 
 | Sample | Barcodes with at least 200 features | Captured by reference subset | `min.cells = 3` genes: reference / full input |
 |---|---:|---:|---:|
-| `ctrl` | 15,325 | 15,325 | 15,516 / 15,576 (delta 60; 0.385%) |
-| `stim` | 15,277 | 15,277 | 15,256 / 15,367 (delta 111; 0.722%) |
+| `ctrl` | 15,325 | 15,325 | 15,397 / 15,397 (delta 0) |
+| `stim` | 15,277 | 15,277 | 15,153 / 15,153 (delta 0) |
+
+Because the cut is not binding, both branches build the object from the same
+barcodes, so on these inputs the two branches share one gene universe. Both gene
+counts are measured after the `min.features = 200` barcode filter, matching the
+order `CreateSeuratObject()` applies its filters; counting across all 737,280 raw
+barcodes instead would add genes detected only in empty droplets.
 
 On inputs with more real cells than the subset size, the runner warns and records
 `*_subset_cut_binding: TRUE` in `run_manifest.txt`; the depth-ranked cut then excludes
