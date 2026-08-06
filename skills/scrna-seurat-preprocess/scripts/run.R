@@ -321,7 +321,12 @@ combined_qc <- RunUMAP(combined_qc, dims = 1:30, verbose = FALSE, seed.use = arg
 # FindAllMarkers(), or marker output can fail or be incomplete.
 combined_qc <- JoinLayers(combined_qc)
 markers <- FindAllMarkers(combined_qc, only.pos = TRUE, min.pct = 0.25, verbose = FALSE)
-markers$gene <- rownames(markers)
+# FindAllMarkers() already carries the symbol in `gene`. Its rownames are
+# make.unique()d, so a gene marking several clusters appears there as GENE.1,
+# GENE.2; reading symbols off the rownames would write those into markers.csv.
+if (!"gene" %in% colnames(markers)) {
+  markers$gene <- rownames(markers)
+}
 markers <- markers[, c("gene", setdiff(colnames(markers), "gene")), drop = FALSE]
 
 post_qc_counts <- as.data.frame(table(combined_qc$orig.ident), stringsAsFactors = FALSE)

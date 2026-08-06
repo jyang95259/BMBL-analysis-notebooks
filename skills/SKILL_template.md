@@ -5,7 +5,7 @@
 
 name: <skill-id>
 # ^ kebab-case, identical to this skill's folder name. This is the *leading word*
-#   the agent, your prompts, and your docs all share. e.g. scrna-seurat-general,
+#   the agent, your prompts, and your docs all share. e.g. scrna-seurat-preprocess,
 #   scrna-label-transfer, spatial-bayesspace.
 
 description: >
